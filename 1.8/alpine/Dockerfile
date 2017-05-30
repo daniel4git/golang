@@ -1,8 +1,9 @@
 FROM alpine/tsinghua:3.6
-
-RUN apk add --no-cache ca-certificates
+LABEL maintainer "2214695946@qq.com"
 
 ENV GOLANG_VERSION 1.8.3
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # https://golang.org/issue/14851 (Go 1.8 & 1.7)
 # https://golang.org/issue/17847 (Go 1.7)
@@ -10,6 +11,8 @@ ENV GOLANG_VERSION 1.8.3
 COPY go1.8.3.src.tar.gz go.tgz
 
 RUN set -eux; \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime;\
+    apk add --no-cache ca-certificates; \
 	apk add --no-cache --virtual .build-deps \
 		bash \
 		gcc \
@@ -36,16 +39,13 @@ RUN set -eux; \
 	cd /usr/local/go/src; \
 	./make.bash; \
 	\
-	rm -rf /go-alpine-patches; \
 	apk del .build-deps; \
 	\
 	export PATH="/usr/local/go/bin:$PATH"; \
-	go version
+	#go version
 
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+    mkdir -p "$GOPATH/src" && chmod -R 777 "$GOPATH"
 
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 WORKDIR $GOPATH
 
 COPY go-wrapper /usr/local/bin/
